@@ -1,0 +1,84 @@
+# myweb_fe 프로젝트를 CI/CD 할 것!! (GitHub Actions 이용)
+# Workflow 흐름
+# main push -> dist 로 빌드 -> EC2 로 전송 -> NginX 폴더에 넣고 재시작
+
+# -----------------------------------------------------------------------------------
+
+# 이 Workflow 의 이름
+name: Deploy dist to NginX
+
+# 언제 실행할건지에 대한 조건 (main 브랜치에 push 될 때 CI/CD 작업을 하겠다)
+on:
+  push:
+    branches: [ main ]
+
+# 순차적으로 실행할 작업을 정의 (job)
+jobs:
+  deploy:                       # 작업명 (아무거나 작성)
+    runs-on: ubuntu-latest      # 빌드용 컴퓨터를 GitHub 로 부터 한대 빌려옴 (ubuntu 최신버전)
+                                # Jenkins 라는 툴에서는 Jenkins 서버 역할
+
+    steps:
+      # 1단계 : 내 소스코드를 빌드용 컴퓨터로 내보내기 (Checkout)
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2단계 : 빌드용 컴퓨터에 Node.js 설치 (빌드 시 필요, 개발 때 썼던 버전과 맞추기)
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # 3단계 : npm 으로 dist 빌드
+      # 3_1. npm 모듈 설치
+      - name: Install dependencies
+        run : npm ci
+
+      # 3_2. npm run build
+      - name: Build dist with npm
+        run: npm run build
+      
+      # ----- 여기까지가 CI (지속적인 통합 : 소스코드를 지속적으로 통합 후 빌드까지) -----
+
+      # ----- 아래부터는 CD (지속적인 배포 : 자동으로 배포되게끔 EC2 접속 후 리눅스 명령문 작성) -----
+
+      # 4단계 : dist 를 EC2 로 전송 (파일 전송 시에는 scp 명령문 이용)
+      - name: Copy dist to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}         # 어디로 보낼건지
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}           # 비밀키 정보
+          source: "dist/*"                      # 전송할 파일 정보
+          target: "home/ubuntu/react-upload"    # 파일이 저장될 도착지 경로
+                                                # /home/ubuntu/react-upload/dist/*
+          stripe_components: 1                  # 폴더를 한겹 빠져나오겠다.
+                                                # /home/ubuntu/react-upload/*
+
+      # 5단계 : EC2 접속해서 (ssh 명령문 이용) dist 를 NginX 에 넣고 재구동
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}         # 어디로 접속할건지
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}           # 비밀키 정보
+          # --- 여기까지가 접속 정보 ---
+
+          # --- 아래에서 부터는 접속 후 어떤 명령문을 실행할건지 적는 부분
+          # 리눅스 명령문들이 순차적으로 실행되서 어떤 작업을 자동으로 할 수 있도록 도와주는 개념
+          # 명령문들을 순차적으로 실행되게끔 적어주는 개념 : Batch (배치) - Windows 계열 용어
+          # ubuntu (Linux 계열) 에서는 Shell Script 또는 Bash Script 라고 부른다.
+          script: |
+
+            # 1) Nginx 폴더 비우기
+            sudo rm -rf /var/www/react/*
+
+            # 2) 새로 올라온 파일들을 이 폴더로 복사하기
+            sudo cp -r /home/ubuntu/react-upload/* /var/www/react/
+
+            # 3) 임시 폴더 정리
+            sudo rm -rf /home/ubuntu/react-upload/*
+
+            # 4) NginX 반영
+            sudo systemctl reload nginx
