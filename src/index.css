@@ -1,0 +1,26 @@
+/*
+    기존에 index.css 파일은 main.jsx 에서 import 되어
+    전체 공통 스타일을 정의할 수 있는 파일이였음!!
+
+    우리는 App.jsx 에서 import 된 App.css 에서 공통스타일을
+    이미 정의했기 때문에
+    메인페이지를 나타내는 Index.jsx 에서 import 할 용도로
+    이 index.css 파일의 용도를 바꿔 준 것!!
+    (Index.css 로 파일명을 맞춰 주는 것이 더 좋긴 하다)
+*/
+
+#login-form {
+    width : 40%;
+    margin : auto;
+}
+
+#login-form>table {
+    width : 100%;
+}
+
+#login-form input {
+    width : 100%;
+    box-sizing : border-box;
+    padding : 5px;
+    margin : 3px;
+}
