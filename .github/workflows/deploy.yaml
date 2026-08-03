@@ -51,7 +51,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}           # 비밀키 정보
           source: "dist/*"                      # 전송할 파일 정보
-          target: "home/ubuntu/react-upload"    # 파일이 저장될 도착지 경로
+          target: "/home/ubuntu/react-upload"    # 파일이 저장될 도착지 경로
                                                 # /home/ubuntu/react-upload/dist/*
           stripe_components: 1                  # 폴더를 한겹 빠져나오겠다.
                                                 # /home/ubuntu/react-upload/*
