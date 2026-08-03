@@ -6,7 +6,7 @@ import Footer from "./common/components/Footer";
 
 import { Routes, Route } from 'react-router-dom';
 
-import Index from "./index";
+import Index from "./Index";
 
 import MemberListComponent from "./member/components/MemberListComponent";
 import MemberDetailComponent from "./member/components/MemberDetailComponent";

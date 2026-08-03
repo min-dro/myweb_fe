@@ -51,7 +51,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}           # 비밀키 정보
           source: "dist/*"                      # 전송할 파일 정보
-          target: "/home/ubuntu/react-upload"    # 파일이 저장될 도착지 경로
+          target: "/home/ubuntu/react-upload"   # 파일이 저장될 도착지 경로
                                                 # /home/ubuntu/react-upload/dist/*
           strip_components: 1                   # 폴더를 한겹 빠져나오겠다.
                                                 # /home/ubuntu/react-upload/*
@@ -67,7 +67,7 @@ jobs:
 
           # --- 아래에서 부터는 접속 후 어떤 명령문을 실행할건지 적는 부분
           # 리눅스 명령문들이 순차적으로 실행되서 어떤 작업을 자동으로 할 수 있도록 도와주는 개념
-          # 명령문들을 순차적으로 실행되게끔 적어주는 개념 : Batch (배치) - Windows 계열 용어
+          # 명령문들을 순차적으로 실행되게끔 적어주는 개념 : Batch Script (배치) - Windows 계열 용어
           # ubuntu (Linux 계열) 에서는 Shell Script 또는 Bash Script 라고 부른다.
           script: |
 
